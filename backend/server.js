@@ -8,12 +8,14 @@ import postRoutes from "./routes/postRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import { v2 as cloudinary } from "cloudinary";
 import { app, server } from "./socket/socket.js";
+import path from "path";
 
 dotenv.config();
 connectDB();
 // const app = express();
 
 const PORT = process.env.PORT || 3000;
+const __dirname = path.resolve();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -30,6 +32,16 @@ app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/message", messageRoutes);
 
+// http://localhost:3000 => backend , frontend
+// http://localhost:5173 => frontend
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "/frontend/dist")));
+  //react app
+  app.get("*", (req, resolve) => {
+    resolve.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
+  });
+}
 server.listen(PORT, () =>
   console.log(`Server Started at http://localhost:${PORT} `)
 ); // using server instead of app.listen so as to be able to use the socket server as well
